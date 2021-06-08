@@ -1,24 +1,33 @@
 <?php
 
+use App\Models\Image;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
 Route::get('/', function () {
-    return view('welcome');
+    return view('welcome', [
+        'images' => Image::all()
+    ]);
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::post('/', function () {
+    $files = request('file');
+    foreach($files as $file) {
+        // Get file size
+        $filesize = $file->getSize();
+        // Get file dimemsion
+        $dimension = getimagesize($file);
+        $width = $dimension[0];
+        $height = $dimension[1];
+        // Upload image and get path
+        $name = $file->store('images', 'public');
 
-require __DIR__.'/auth.php';
+        Image::create(compact('name', 'filesize', 'width', 'height'));
+    }
+    return 'upload';
+});
+
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth'])->name('dashboard');
+
+// require __DIR__.'/auth.php';
